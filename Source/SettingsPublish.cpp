@@ -1,6 +1,7 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
  Copyright (C) 2013 Lucas Murray <lmurray@undefinedfire.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -515,6 +516,16 @@ void SettingsPublish::OptimizeSettings()
 
     for (optimizers_t::const_reference i : optimizers)
         i();
+}
+
+// added by y2jinc - 2016 / 7 / 22
+void SettingsPublish::SetStreamKey(CTSTR lpStreamKey)
+{
+	String strTemp = lpStreamKey;
+	strTemp.KillSpaces();
+	AppConfig->SetString(TEXT("Publish"), TEXT("PlayPath"), strTemp);
+	::SetWindowText(GetDlgItem(hwnd, IDC_PLAYPATH), strTemp);
+	AppConfig->SaveAs(AppConfig->GetFilePath());
 }
 
 INT_PTR SettingsPublish::ProcMessage(UINT message, WPARAM wParam, LPARAM lParam)

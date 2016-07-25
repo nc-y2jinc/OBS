@@ -1,5 +1,6 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,6 +21,20 @@
 #include <list>
 
 #pragma once
+
+//////////////////////////////////////////////////////////////////////////
+// added by y2jinc - 2016 / 7 / 22
+#define WM_OBS_CUSTOM_MSG_START		WM_USER+0x0200
+
+// OBS to client messages
+#define WM_OBS_NOTICE_STATUS		WM_OBS_CUSTOM_MSG_START+1
+#	define OBS_START_STREAM				1
+#	define OBS_STOP_STREAM				2
+
+// Client to OBS messages
+#define WM_OBS_MODIFY_RESOLUTION	WM_OBS_CUSTOM_MSG_START+2
+//	wparam : width, lparam : height
+//////////////////////////////////////////////////////////////////////////
 
 class Scene;
 class SettingsPane;
@@ -733,6 +748,15 @@ class OBS
     void   SetCanOptimizeSettings(bool canOptimize);
     void   OptimizeSettings();
 
+	//---------------------------------------------------
+	// added by y2jinc - 2016 / 7 / 22
+private:
+	HWND	hwndReportClient;
+
+public:
+	void	ReportClientOBSStatusChanged(int message, WPARAM wparam, LPARAM lparam);
+	//---------------------------------------------------
+
     // Settings panes
 public:
     void   AddSettingsPane(SettingsPane *pane);
@@ -828,6 +852,9 @@ private:
     UINT    frameTime, fps;
     bool    bUsing444;
     ColorDescription colorDesc;
+
+	// added by y2jinc - 2016 / 7 / 22
+	std::wstring	captureWindowClassName;
 
     //---------------------------------------------------
     // stats
@@ -1261,6 +1288,12 @@ public:
 
     virtual bool SetSceneCollection(CTSTR lpCollection);
 
+	//---------------------------------------------------------------------------
+	// added by y2jinc - 2016 / 7 / 22
+	bool SetStreamKey(CTSTR lpStreamKey);
+	void ModifyResolution(int width, int height);
+	//---------------------------------------------------------------------------
+
     //---------------------------------------------------------------------------
     // volume stuff
     virtual void SetDesktopVolume(float val, bool finalValue);
@@ -1324,6 +1357,12 @@ public:
     void AddPendingStreamThread(HANDLE thread);
     void ClosePendingStreams();
     void LoadAllPlugins();
+
+	//---------------------------------------------------------------------------
+	// added by y2jinc - 2016 / 7 / 22
+	void	SetCaptureWindowClassName(LPWSTR InCaptureWindowClassName);
+	LPCWSTR GetCaptureWindowClassName() const;
+	//---------------------------------------------------------------------------
 };
 
 LONG CALLBACK OBSExceptionHandler (PEXCEPTION_POINTERS exceptionInfo);

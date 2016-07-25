@@ -1,5 +1,6 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -252,6 +253,21 @@ VOID OBS::LoadAllPlugins()
 
         OSFindClose(hFind);
     }
+}
+
+// added by y2jinc - 2016 / 7 / 22
+void OBS::SetCaptureWindowClassName(LPWSTR InCaptureWindowClassName)
+{
+	if (InCaptureWindowClassName)
+		captureWindowClassName = InCaptureWindowClassName;
+	else
+		captureWindowClassName.empty();
+}
+
+// added by y2jinc - 2016 / 7 / 22
+LPCWSTR OBS::GetCaptureWindowClassName() const
+{
+	return captureWindowClassName.c_str();
 }
 
 OBS::OBS()
@@ -823,7 +839,9 @@ OBS::OBS()
     ConfigureStreamButtons();
 
     ResizeWindow(false);
-    ShowWindow(hwndMain, SW_SHOW);
+
+	// modified by y2jinc - 2016 / 7 / 22
+    ShowWindow(hwndMain, !bWindowHide? SW_SHOW : SW_HIDE);
 
     renderFrameIn1To1Mode = !!GlobalConfig->GetInt(L"General", L"1to1Preview", false);
 
@@ -2006,6 +2024,20 @@ void OBS::SetSourceRender(CTSTR sourceName, bool render)
             break;
         }
     }
+}
+
+// added by y2jinc - 2016 / 7 / 22
+void OBS::ReportClientOBSStatusChanged(int message, WPARAM wparam, LPARAM lparam)
+{
+	if (!hwndReportClient)
+	{
+		hwndReportClient = FindWindow(this->captureWindowClassName.c_str(), NULL);
+	}
+
+	if (!hwndReportClient)
+		return;
+
+	PostMessage(hwndReportClient, message, wparam, lparam);
 }
 
 BOOL OBS::SetNotificationAreaIcon(DWORD dwMessage, int idIcon, const String &tooltip)

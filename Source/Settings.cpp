@@ -1,5 +1,6 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -199,6 +200,26 @@ void OBS::SetCanOptimizeSettings(bool canOptimize)
     if (hwndSettings == NULL)
         return;
     ShowWindow(GetDlgItem(hwndSettings, IDC_OPTIMIZE), canOptimize);
+}
+
+// added by y2jinc - 2016 / 7 / 22
+bool OBS::SetStreamKey(CTSTR lpStreamKey)
+{
+	SettingsPublish* pSettingPublish = static_cast<SettingsPublish*>(settingsPanes[2]);
+	if (!pSettingPublish)
+		return false;
+
+	pSettingPublish->SetStreamKey(lpStreamKey);
+}
+
+// added by y2jinc - 2016 / 7 / 22
+void OBS::ModifyResolution(int width, int height)
+{
+	SettingsVideo* pSettingVideo = static_cast<SettingsVideo*>(settingsPanes[3]);
+	if (!pSettingVideo)
+		return;
+
+	pSettingVideo->ModifyResolution(width, height);
 }
 
 void OBS::OptimizeSettings()

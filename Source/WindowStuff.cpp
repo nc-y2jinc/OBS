@@ -1,5 +1,6 @@
 ﻿/********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -3562,6 +3563,13 @@ LRESULT CALLBACK OBS::OBSProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 {
     switch(message)
     {
+		// added by y2jinc - 2016 / 7 / 22
+		case WM_OBS_MODIFY_RESOLUTION:
+			{
+				App->ModifyResolution(static_cast<int>(wParam), static_cast<int>(lParam));
+			}
+			break;
+
         case WM_COMMAND:
             switch(LOWORD(wParam))
             {

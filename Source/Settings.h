@@ -1,6 +1,7 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
  Copyright (C) 2013 Lucas Murray <lmurray@undefinedfire.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -127,6 +128,9 @@ public:
     virtual void CancelSettings();
     virtual bool HasDefaults() const;
     virtual void OptimizeSettings() override;
+
+	// added by y2jinc - 2016 / 7 / 22
+	virtual void SetStreamKey(CTSTR lpStreamKey);
 };
 
 //============================================================================
@@ -158,6 +162,9 @@ public:
     virtual void CancelSettings();
     virtual bool HasDefaults() const;
     //virtual void SetDefaults();
+
+	// added by y2jinc - 2016 / 7 / 22
+	void ModifyResolution(int width, int height);
 };
 
 //============================================================================

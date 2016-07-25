@@ -1,6 +1,7 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
  Copyright (C) 2012 Bill Hamilton <bill@ecologylab.net>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -31,6 +32,9 @@ void OBS::ReportStartStreamTrigger()
         if (callback)
             (*callback)();
     }
+
+	// added by y2jinc - 2016 / 7 / 22
+	ReportClientOBSStatusChanged(WM_OBS_NOTICE_STATUS, OBS_START_STREAM, 0);
 }
 void OBS::ReportStopStreamTrigger()
 {
@@ -44,6 +48,9 @@ void OBS::ReportStopStreamTrigger()
         if (callback)
             (*callback)();
     }
+
+	// added by y2jinc - 2016 / 7 / 22
+	ReportClientOBSStatusChanged(WM_OBS_NOTICE_STATUS, OBS_STOP_STREAM, 0);
 }
 
 void OBS::ReportStartStreamingTrigger()

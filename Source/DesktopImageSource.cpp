@@ -1,5 +1,6 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -332,7 +333,11 @@ public:
                 }
                 else
                 {
-                    hwndCapture = FindWindow(strWindowClass, strWindow);
+					// added by y2jinc - 2016 / 7 / 22
+					if (lstrlen(App->GetCaptureWindowClassName()) > 0)
+						hwndCapture = FindWindow(App->GetCaptureWindowClassName(), NULL); // only reference windowclass name
+					else
+						hwndCapture = FindWindow(strWindowClass, strWindow);
                     if(!hwndCapture)
                         hwndCapture = FindWindow(strWindowClass, NULL);
                 }
@@ -563,7 +568,13 @@ public:
     {
         App->EnterSceneMutex();
 
-        UINT newCaptureType     = data->GetInt(TEXT("captureType"));
+        // added by y2jinc - 2016 / 7 / 22
+		if (lstrlenW(App->GetCaptureWindowClassName()) > 0)
+		{
+			data->SetString(TEXT("windowClass"), App->GetCaptureWindowClassName());
+		}
+
+		UINT newCaptureType     = data->GetInt(TEXT("captureType"));
         String strNewWindow     = data->GetString(TEXT("window"));
         String strNewWindowClass= data->GetString(TEXT("windowClass"));
         BOOL bNewClientCapture  = data->GetInt(TEXT("innerWindow"), 1);

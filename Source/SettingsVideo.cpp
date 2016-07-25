@@ -1,6 +1,7 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
  Copyright (C) 2013 Lucas Murray <lmurray@undefinedfire.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -264,6 +265,38 @@ void SettingsVideo::CancelSettings()
 bool SettingsVideo::HasDefaults() const
 {
     return false;
+}
+
+// added by y2jinc - 2016 / 7 / 22
+void SettingsVideo::ModifyResolution(int width, int height)
+{
+	AppConfig->SetInt(TEXT("Video"), TEXT("BaseWidth"), width);
+	AppConfig->SetInt(TEXT("Video"), TEXT("BaseHeight"), height);
+
+	SetWindowText(GetDlgItem(hwnd, IDC_SIZEX), IntString(width).Array());
+	SetWindowText(GetDlgItem(hwnd, IDC_SIZEY), IntString(height).Array());
+
+	if (App->sceneElement)
+	{
+		XElement* captureWindow = NULL;
+		XElement* sources = App->sceneElement->GetElement(TEXT("sources"));
+		if (sources)
+		{
+			captureWindow = sources->GetElementByID(0);
+		}
+		if (captureWindow)
+		{
+			captureWindow->SetInt(TEXT("cx"), width);
+			captureWindow->SetInt(TEXT("cy"), height);
+
+			XElement* data = captureWindow->GetElement(TEXT("data"));
+			if (data)
+			{
+				data->SetInt(TEXT("captureCX"), width);
+				data->SetInt(TEXT("captureCY"), height);
+			}
+		}
+	}
 }
 
 /*void SettingsVideo::SetDefaults()

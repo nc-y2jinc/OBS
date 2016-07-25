@@ -1,5 +1,6 @@
 ﻿/********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -41,6 +42,7 @@ ConfigFile  *AppConfig      = NULL;
 OBS         *App            = NULL;
 bool        bIsPortable     = false;
 bool        bStreamOnStart  = false;
+bool		bWindowHide		= false;	// added by y2jinc - 2016 / 7 / 22
 TCHAR       lpAppPath[MAX_PATH];
 TCHAR       lpAppDataPath[MAX_PATH];
 
@@ -531,16 +533,27 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     LPWSTR sceneCollection = NULL;
     LPWSTR userService = NULL;
 
+	// added by y2jinc - 2016 / 7 / 22
+	LPWSTR captureClassName = NULL;
+
     bool bDisableMutex = false;
+
 
     for(int i=1; i<numArgs; i++)
     {
-        if(scmpi(args[i], TEXT("-multi")) == 0)
-            bDisableMutex = true;
-        else if(scmpi(args[i], TEXT("-portable")) == 0)
-            bIsPortable = true;
-        else if (scmpi(args[i], TEXT("-start")) == 0)
-            bStreamOnStart = true;
+		if (scmpi(args[i], TEXT("-multi")) == 0)
+			bDisableMutex = true;
+		else if (scmpi(args[i], TEXT("-portable")) == 0)
+			bIsPortable = true;
+		else if (scmpi(args[i], TEXT("-start")) == 0)
+			bStreamOnStart = true;
+		else if (scmpi(args[i], TEXT("-hide")) == 0)			// added by y2jinc - 2016 / 7 / 22
+			bWindowHide = true;
+		else if (scmpi(args[i], TEXT("-classname")) == 0)	// added by y2jinc - 2016 / 7 / 22
+		{
+			if (++i < numArgs)
+				captureClassName = args[i];
+		}
         else if (scmpi(args[i], L"-profile") == 0)
         {
             if (++i < numArgs)
@@ -778,6 +791,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         App = new OBS;
 
         App->LoadAllPlugins();
+
+		//--------------------------------------------
+		// added by y2jinc - 2016 / 7 / 22
+		App->SetCaptureWindowClassName(captureClassName);
+		int BaseWidth = 0, BaseHeight = 0;
+		BaseWidth = AppConfig->GetInt(TEXT("Video"), TEXT("BaseWidth"), 1600);
+		BaseHeight = AppConfig->GetInt(TEXT("Video"), TEXT("BaseHeight"), 900);
+		App->ModifyResolution(BaseWidth, BaseHeight);
+		//--------------------------------------------
 
         HACCEL hAccel = LoadAccelerators(hinstMain, MAKEINTRESOURCE(IDR_ACCELERATOR1));
 

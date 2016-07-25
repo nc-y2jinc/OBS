@@ -1,5 +1,6 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -117,6 +118,9 @@ public:
     virtual QWORD GetAudioTime() const=0;
 
     virtual CTSTR GetAppPath() const=0;
+
+	// added by y2jinc - 2016 / 7 / 22
+	virtual bool SetStreamKey(CTSTR lpStreamKey) = 0;
 
     virtual void StartStopStream() = 0;
     virtual void StartStopPreview() = 0;

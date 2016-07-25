@@ -1,5 +1,6 @@
 /********************************************************************************
  Copyright (C) 2013 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -170,3 +171,6 @@ void OBSRemoveSettingsPane(SettingsPane *pane)  {API->RemoveSettingsPane(pane);}
 UINT OBSGetAPIVersion()                         {return 0x0103;}
 
 UINT OBSGetSampleRateHz()                       {return API->GetSampleRateHz();}
+
+// added by y2jinc - 2016 / 7 / 22
+bool OBSSetStreamKey(CTSTR lpStreamKey)			{ return API->SetStreamKey(lpStreamKey); }

@@ -1,5 +1,6 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -73,6 +74,7 @@ extern ConfigFile   *AppConfig;
 extern OBS          *App;
 extern bool         bIsPortable;
 extern bool         bStreamOnStart;
+extern bool			bWindowHide;	// added by y2jinc - 2016 / 7 / 22
 extern TCHAR        lpAppPath[MAX_PATH];
 extern TCHAR        lpAppDataPath[MAX_PATH];
 
