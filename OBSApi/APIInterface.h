@@ -343,3 +343,6 @@ BASE_EXPORT void OBSRemoveSettingsPane(SettingsPane *pane);
 BASE_EXPORT UINT OBSGetAPIVersion();
 
 BASE_EXPORT UINT OBSGetSampleRateHz();
+
+// added by y2jinc - 2016 / 7 / 22
+bool OBSSetStreamKey(CTSTR lpStreamKey);
