@@ -1,5 +1,6 @@
 ﻿/********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -46,6 +47,9 @@ CTSTR deinterlacerLocalizations[DEINTERLACING_TYPE_LAST] = {
 };
 
 #define DSHOW_CLASSNAME TEXT("DeviceCapture")
+
+// added by y2jinc 2016. 8. 19.
+#define WINDOWCAPTURE_CLASSNAME	TEXT("WindowCaptureSource")
 
 
 //CTSTR lpRoxioVideoCaptureGUID = TEXT("{6994AD05-93EF-11D0-A3-CC-00-A0-C9-22-31-96}");
@@ -2365,6 +2369,274 @@ ImageSource* STDCALL CreateDShowSource(XElement *data)
     return source;
 }
 
+// added by y2jinc 2016. 8. 19.
+bool GetOutListOfDevices(GUID matchGUID, StringList* deviceList, StringList* deviceIDlist)
+{
+	CoInitialize(0);
+
+	deviceIDlist->Clear();
+	deviceList->Clear();
+
+	for (int i = 0; i < DEV_EXCEPTION_COUNT; i++)
+	{
+		IBaseFilter* exceptionFilter = GetExceptionDevice(lpExceptionGUIDs[i]);
+		if (exceptionFilter)
+		{
+			deviceList->Add(lpExceptionNames[i]);
+
+			String exceptionGUIDString = GUIDToString(lpExceptionGUIDs[i]);
+			deviceIDlist->Add(exceptionGUIDString);
+
+			exceptionFilter->Release();
+		}
+	}
+
+	ICreateDevEnum* deviceEnum;
+	IEnumMoniker* videoDeviceEnum;
+
+	HRESULT err;
+	err = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER, IID_ICreateDevEnum, (void**)&deviceEnum);
+	if (FAILED(err))
+	{
+		AppWarning(TEXT("FillOutListDevices: CoCreateInstance for the device enum failed, result = %08lX"), err);
+		return false;
+	}
+
+	err = deviceEnum->CreateClassEnumerator(matchGUID, &videoDeviceEnum, 0);
+	if (FAILED(err))
+	{
+		AppWarning(TEXT("FillOutListDevices: deviceEnum->CreateClassEnumerator failed, result = %08lX"), err);
+		deviceEnum->Release();
+		return false;
+	}
+
+	SafeRelease(deviceEnum);
+	if (err == S_FALSE) // no devices
+		return false;
+
+	IMoniker* deviceInfo;
+	DWORD count;
+
+	while (videoDeviceEnum->Next(1, &deviceInfo, &count) == S_OK)
+	{
+		IPropertyBag* propertyData;
+		err = deviceInfo->BindToStorage(0, 0, IID_IPropertyBag, (void**)&propertyData);
+		if (SUCCEEDED(err))
+		{
+			VARIANT friendlyNameValue, devicePathValue;
+			friendlyNameValue.vt = VT_BSTR;
+			friendlyNameValue.bstrVal = NULL;
+			devicePathValue.vt = VT_BSTR;
+			devicePathValue.bstrVal = NULL;
+
+			err = propertyData->Read(L"FriendlyName", &friendlyNameValue, NULL);
+			propertyData->Read(L"DevicePath", &devicePathValue, NULL);
+			if (SUCCEEDED(err))
+			{
+				IBaseFilter* filter;
+				err = deviceInfo->BindToObject(NULL, 0, IID_IBaseFilter, (void**)&filter);
+				if (SUCCEEDED(err))
+				{
+					String strDeviceName = (CWSTR)friendlyNameValue.bstrVal;
+					deviceList->Add(strDeviceName);
+
+					UINT count2 = 0;
+					UINT id = INVALID;
+					while ((id = deviceList->FindNextValueIndexI(strDeviceName, id)) != INVALID) count2++;
+
+					if (count2 > 1)
+						strDeviceName << TEXT(" (") << UIntString(count2) << TEXT(")");
+
+					String strDeviceID = (CWSTR)devicePathValue.bstrVal;
+					deviceIDlist->Add(strDeviceID);
+
+					SafeRelease(filter);
+				}
+			}
+
+			SafeRelease(propertyData);
+		}
+
+		SafeRelease(deviceInfo);
+	}
+
+	SafeRelease(videoDeviceEnum);
+	CoUninitialize();
+
+	return true;
+}
+
+// added by y2jinc 2016. 8. 19.
+void STDCALL GetCamDeviceInfo(String& curDeviceName, StringList& CamDeviceNames)
+{
+	// get current selected cam device
+	XElement* sceneElement = API->GetSceneElement();
+	if (sceneElement)
+	{
+		XElement* sourceListElement = sceneElement->GetElement(TEXT("sources"));
+		if (sourceListElement)
+		{
+			UINT numSources = sourceListElement->NumElements();
+			for (UINT i = 0; i < numSources; i++)
+			{
+				XElement* sourceElement = sourceListElement->GetElementByID(i);
+				if (scmpi(sourceElement->GetString(TEXT("class")), DSHOW_CLASSNAME) == 0)
+				{
+					XElement* data = sourceElement->GetElement(TEXT("data"));
+					if (data)
+					{
+						curDeviceName = data->GetString(TEXT("device"));
+					}
+				}
+			}
+		}
+	}
+
+	// get video capture devices name
+	StringList IDLists;
+	GetOutListOfDevices(CLSID_VideoInputDeviceCategory, &CamDeviceNames, &IDLists);
+}
+
+// added by y2jinc 2016. 8. 19.
+bool STDCALL SetCamDevice(CTSTR lpDevicename)
+{
+	XElement* sceneElement = API->GetSceneElement();
+	if (!sceneElement)
+	{
+		return false;
+	}
+
+	XElement* sourceListElement = sceneElement->GetElement(TEXT("sources"));
+	if (!sourceListElement)
+	{
+		return false;
+	}
+
+	UINT numSources = sourceListElement->NumElements();
+	for (UINT i = 0; i < numSources; i++)
+	{
+		XElement* sourceElement = sourceListElement->GetElementByID(i);
+		if (sourceElement && scmpi(sourceElement->GetString(TEXT("class")), DSHOW_CLASSNAME) == 0)
+		{
+			XElement* data = sourceElement->GetElement(TEXT("data"));
+			if (data)
+			{
+				StringList CamDeviceNames, IDLists;
+				GetOutListOfDevices(CLSID_VideoInputDeviceCategory, &CamDeviceNames, &IDLists);
+
+				for (size_t i = 0; i < CamDeviceNames.Num(); ++i)
+				{
+					if (scmp(CamDeviceNames[i].Array(), lpDevicename) == 0)
+					{
+						// set xconfig infos
+						data->SetString(TEXT("device"), CamDeviceNames[i].Array());
+						data->SetString(TEXT("deviceName"), CamDeviceNames[i].Array());
+						data->SetString(TEXT("deviceID"), IDLists[i].Array());
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+// added by y2jinc 2016. 8. 19.
+bool STDCALL UpdateCamPosAlignment(CTSTR lpPosAlignment, INT& OutX, INT& OutY)
+{
+	if (!lpPosAlignment)
+		return false;
+
+	XElement* sceneElement = API->GetSceneElement();
+	if (!sceneElement)
+	{
+		return false;
+	}
+
+	XElement* sourceListElement = sceneElement->GetElement(TEXT("sources"));
+	if (!sourceListElement)
+	{
+		return false;
+	}
+
+	// get window capture resolution
+	INT ResolutionWidth = 0;
+	INT ResolutionHeight = 0;
+	UINT numSources = sourceListElement->NumElements();
+	for (UINT i = 0; i < numSources; i++)
+	{
+		XElement* sourceElement = sourceListElement->GetElementByID(i);
+		if (sourceElement && scmpi(sourceElement->GetString(TEXT("class")), WINDOWCAPTURE_CLASSNAME) == 0)
+		{
+			ResolutionWidth = sourceElement->GetInt(TEXT("cx"));
+			ResolutionHeight = sourceElement->GetInt(TEXT("cy"));
+		}
+	}
+
+	if (ResolutionWidth == 0 || ResolutionHeight == 0)
+	{
+		return false;
+	}
+
+	// cam pos, size
+	INT PosX = -1;
+	INT PosY = -1;
+	INT Width = 0;
+	INT Height = 0;
+	numSources = sourceListElement->NumElements();
+	for (UINT i = 0; i < numSources; i++)
+	{
+		XElement* sourceElement = sourceListElement->GetElementByID(i);
+		if (sourceElement && scmpi(sourceElement->GetString(TEXT("class")), DSHOW_CLASSNAME) == 0)
+		{
+			Width = sourceElement->GetInt(TEXT("cx"), 320);
+			Height = sourceElement->GetInt(TEXT("cy"), 240);
+
+			if (scmpi(TEXT("left-top"), lpPosAlignment) == 0)
+			{
+				PosX = 0;
+				PosY = 0;
+			}
+			else if (scmpi(TEXT("left-bottom"), lpPosAlignment) == 0)
+			{
+				PosX = 0;
+				PosY = ResolutionHeight - Height;
+			}
+			else if (scmpi(TEXT("right-top"), lpPosAlignment) == 0)
+			{
+				PosX = ResolutionWidth - Width;
+				PosY = 0;
+			}
+			else if (scmpi(TEXT("right-bottom"), lpPosAlignment) == 0)
+			{
+				PosX = ResolutionWidth - Width;
+				PosY = ResolutionHeight - Height;
+			}
+
+			if (PosX < 0 || PosY < 0)
+			{
+				return false;
+			}
+
+			// set xconfig infos
+			XElement* data = sourceElement->GetElement(TEXT("data"));
+			if (data)
+			{
+				data->SetString(TEXT("pos-alignment"), lpPosAlignment);
+			}
+
+			sourceElement->SetInt(TEXT("x"), PosX);
+			sourceElement->SetInt(TEXT("y"), PosY);
+
+			OutX = PosX;
+			OutY = PosY;
+		}
+	}
+
+	return true;
+}
+
 
 bool LoadPlugin()
 {
@@ -2386,6 +2658,13 @@ bool LoadPlugin()
     }
 
     API->RegisterImageSourceClass(DSHOW_CLASSNAME, PluginStr("ClassName"), (OBSCREATEPROC)CreateDShowSource, (OBSCONFIGPROC)ConfigureDShowSource);
+
+	//////////////////////////////////////////////////////////////////////////
+	// added by y2jinc 2016. 8. 19.
+	pOBSGetCamDeviceInfoProc = (OBSGETCAMDEVICEINFOPROC)GetCamDeviceInfo;
+	pOBSSetCamDeviceProc = (OBSSETCAMDEVICEPROC)SetCamDevice;
+	pOBSUpdateCamPosAlignmentProc = (OBSUPDATECAMPOSALIGNMENTPROC)UpdateCamPosAlignment;
+	//////////////////////////////////////////////////////////////////////////
 
     return true;
 }

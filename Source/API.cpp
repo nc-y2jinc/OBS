@@ -686,6 +686,14 @@ public:
 
 	// added by y2jinc - 2016 / 7 / 22
 	virtual bool SetStreamKey(CTSTR lpStreamKey) { return App->SetStreamKey(lpStreamKey); }
+
+	//////////////////////////////////////////////////////////////////////////
+	// added by y2jinc 2016. 8. 19.
+	virtual void GetCamDeviceInfo(String& curSelectedCamDeviceName, StringList& camDeviceNames) { App->GetCamDeviceInfo(curSelectedCamDeviceName, camDeviceNames); }
+	virtual void SetCamDevice(CTSTR lpCamDevicName) { App->SetCamDevice(lpCamDevicName); }
+	virtual bool SetCamPosAlignment(CTSTR lpCamPosAlignment) { return App->SetCamPosAlignment(lpCamPosAlignment); }
+	virtual CTSTR GetCamPosAlignment() { return App->GetCamPosAlignment(); }
+	//////////////////////////////////////////////////////////////////////////
 };
 
 APIInterface* CreateOBSApiInterface()

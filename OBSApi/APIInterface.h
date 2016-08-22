@@ -26,6 +26,18 @@ typedef bool (STDCALL* OBSCONFIGPROC)(XElement*, bool); //element, bInitializing
 
 typedef void (STDCALL* OBSHOTKEYPROC)(DWORD, UPARAM, bool);
 
+//////////////////////////////////////////////////////////////////////////
+// added by y2jinc 2016. 8. 19.
+typedef void (STDCALL* OBSGETCAMDEVICEINFOPROC)(String&, StringList&);
+BASE_EXPORT extern OBSGETCAMDEVICEINFOPROC	pOBSGetCamDeviceInfoProc;
+
+typedef void (STDCALL* OBSSETCAMDEVICEPROC)(CTSTR);
+BASE_EXPORT extern OBSSETCAMDEVICEPROC		pOBSSetCamDeviceProc;
+
+typedef void (STDCALL* OBSUPDATECAMPOSALIGNMENTPROC)(CTSTR, INT&, INT&);
+BASE_EXPORT extern OBSUPDATECAMPOSALIGNMENTPROC	pOBSUpdateCamPosAlignmentProc;
+//////////////////////////////////////////////////////////////////////////
+
 #define HOTKEY_SHIFT    0x1
 #define HOTKEY_CONTROL  0x2
 #define HOTKEY_ALT      0x4
@@ -121,6 +133,14 @@ public:
 
 	// added by y2jinc - 2016 / 7 / 22
 	virtual bool SetStreamKey(CTSTR lpStreamKey) = 0;
+
+	//////////////////////////////////////////////////////////////////////////
+	// added by y2jinc 2016. 8. 19.
+	virtual void GetCamDeviceInfo(String& curSelectedCamDeviceName, StringList& camDevicenames) = 0;
+	virtual void SetCamDevice(CTSTR lpCamDevicName) = 0;
+	virtual bool SetCamPosAlignment(CTSTR lpCamPosAlignment) = 0;
+	virtual CTSTR GetCamPosAlignment() = 0;
+	//////////////////////////////////////////////////////////////////////////
 
     virtual void StartStopStream() = 0;
     virtual void StartStopPreview() = 0;
@@ -346,3 +366,10 @@ BASE_EXPORT UINT OBSGetSampleRateHz();
 
 // added by y2jinc - 2016 / 7 / 22
 bool OBSSetStreamKey(CTSTR lpStreamKey);
+//////////////////////////////////////////////////////////////////////////
+// added by y2jinc 2016. 8. 19.
+BASE_EXPORT void OBSGetCamDeviceInfo(String& curSelectedCamDeviceName, StringList& camDeviceNames);
+BASE_EXPORT void OBSSetCamDevice(CTSTR lpCamDeviceName);
+BASE_EXPORT void OBSSetCamPosAlignment(CTSTR lpCamPosAlignment);
+BASE_EXPORT CTSTR OBSGetCamPosAlignment();
+//////////////////////////////////////////////////////////////////////////

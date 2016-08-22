@@ -174,3 +174,10 @@ UINT OBSGetSampleRateHz()                       {return API->GetSampleRateHz();}
 
 // added by y2jinc - 2016 / 7 / 22
 bool OBSSetStreamKey(CTSTR lpStreamKey)			{ return API->SetStreamKey(lpStreamKey); }
+//////////////////////////////////////////////////////////////////////////
+// added by y2jinc - 2016. 8. 19.
+void OBSGetCamDeviceInfo(String& curSelectedCamDeviceName, StringList& camDeviceNames) { API->GetCamDeviceInfo(curSelectedCamDeviceName, camDeviceNames); }
+void OBSSetCamDevice(CTSTR lpCamDeviceName)			{ API->SetCamDevice(lpCamDeviceName); }
+void OBSSetCamPosAlignment(CTSTR lpCamPosAlignment) { API->SetCamPosAlignment(lpCamPosAlignment); }
+CTSTR OBSGetCamPosAlignment()						{ return API->GetCamPosAlignment(); }
+//////////////////////////////////////////////////////////////////////////

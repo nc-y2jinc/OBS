@@ -1,5 +1,6 @@
 /********************************************************************************
  Copyright (C) 2012 Hugh Bailey <obs.jim@gmail.com>
+ Copyright (C) 2016 NCSOFT Corporation
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,6 +20,12 @@
 
 #include "OBSAPI.h"
 
+//////////////////////////////////////////////////////////////////////////
+// added by y2jinc 2016. 8. 19.
+OBSGETCAMDEVICEINFOPROC pOBSGetCamDeviceInfoProc = NULL;
+OBSSETCAMDEVICEPROC		pOBSSetCamDeviceProc = NULL;
+OBSUPDATECAMPOSALIGNMENTPROC	pOBSUpdateCamPosAlignmentProc = NULL;
+//////////////////////////////////////////////////////////////////////////
 
 APIInterface *API = NULL;
 

@@ -2040,6 +2040,99 @@ void OBS::ReportClientOBSStatusChanged(int message, WPARAM wparam, LPARAM lparam
 	PostMessage(hwndReportClient, message, wparam, lparam);
 }
 
+// added by y2jinc 2016. 8. 19.
+void OBS::GetCamDeviceInfo(String& curSelectedCamDeviceName, StringList& camDeviceNames)
+{
+	if (pOBSGetCamDeviceInfoProc)
+	{
+		(*pOBSGetCamDeviceInfoProc)(curSelectedCamDeviceName, camDeviceNames);
+	}
+}
+
+// added by y2jinc 2016. 8. 19.
+void OBS::SetCamDevice(CTSTR lpCamDeviceName)
+{
+	if (pOBSSetCamDeviceProc)
+	{
+		(*pOBSSetCamDeviceProc)(lpCamDeviceName);
+	}
+}
+
+// added by y2jinc 2016. 8. 19.
+bool OBS::SetCamPosAlignment(CTSTR lpCamPosAlignment)
+{
+	bool bRet = false;
+	INT X = -1;
+	INT Y = -1;
+	
+	if (pOBSUpdateCamPosAlignmentProc)
+	{
+		(*pOBSUpdateCamPosAlignmentProc)(lpCamPosAlignment, X, Y);
+	}
+
+	// scene cam pos
+	if (X == -1 || Y == -1)
+		return false;
+
+	if (!scene || scene->NumSceneItems() == 0)
+		return false;
+
+	for (UINT i = 0; i < scene->NumSceneItems(); ++i)
+	{
+		SceneItem* sceneItem = scene->GetSceneItem(i);
+		if (!sceneItem)
+			continue;
+
+		XElement* pElement = sceneItem->GetElement();
+		if (!pElement)
+			continue;
+
+		CTSTR lpClass = pElement->GetString(TEXT("class"));
+		if (scmpi(lpClass, TEXT("DeviceCapture")) == 0)
+		{
+			// set cam pos
+			Vect2 pos;
+			pos.x = static_cast<FLOAT>(X);
+			pos.y = static_cast<FLOAT>(Y);
+			sceneItem->SetPos(pos);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+// added by y2jinc 2016. 8. 19.
+CTSTR OBS::GetCamPosAlignment()
+{
+	XElement* curSceneElement = App->sceneElement;
+	if (!curSceneElement)
+		return NULL;
+
+	XElement* sources = curSceneElement->GetElement(TEXT("sources"));
+	if (!sources)
+		return NULL;
+
+	for (UINT i = 0; i < sources->NumElements(); ++i)
+	{
+		XElement* pElement = sources->GetElementByID(i);
+		if (!pElement)
+			continue;
+
+		CTSTR lpClass = pElement->GetString(TEXT("class"));
+		if (scmpi(lpClass, TEXT("DeviceCapture")) == 0)
+		{
+			XElement* data = pElement->GetElement(TEXT("data"));
+			if (data)
+			{
+				return data->GetString(TEXT("pos-alignment"), TEXT("right-bottom"));
+			}
+		}
+	}
+
+	return NULL;
+}
+
 BOOL OBS::SetNotificationAreaIcon(DWORD dwMessage, int idIcon, const String &tooltip)
 {
     NOTIFYICONDATA niData;

@@ -1293,6 +1293,13 @@ public:
 	bool SetStreamKey(CTSTR lpStreamKey);
 	void ModifyResolution(int width, int height);
 	//---------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
+	// added by y2jinc 2016. 8. 19.
+	void GetCamDeviceInfo(String& curSelectedCamDeviceName, StringList& camDeviceNames);
+	void SetCamDevice(CTSTR lpCamDeviceName);
+	bool SetCamPosAlignment(CTSTR lpCamPosAlignment);
+	CTSTR GetCamPosAlignment();
+	//---------------------------------------------------------------------------
 
     //---------------------------------------------------------------------------
     // volume stuff
