@@ -282,7 +282,18 @@ void SettingsVideo::ModifyResolution(int width, int height)
 		XElement* sources = App->sceneElement->GetElement(TEXT("sources"));
 		if (sources)
 		{
-			captureWindow = sources->GetElementByID(0);
+			for (size_t i = 0; i < sources->NumElements(); ++i)
+			{
+				XElement* source = sources->GetElementByID(i);
+				if (source)
+				{
+					if (scmpi(source->GetString(TEXT("class")), TEXT("WindowCaptureSource")) == 0)
+					{
+						captureWindow = source;
+						break;
+					}
+				}
+			}			
 		}
 		if (captureWindow)
 		{
